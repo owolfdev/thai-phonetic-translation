@@ -127,6 +127,7 @@ export function TranslatorApp() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [thaiVoice, setThaiVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [isIosSafari, setIsIosSafari] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -200,6 +201,19 @@ export function TranslatorApp() {
       );
     };
 
+    const safariCheckTimeout = window.setTimeout(() => {
+      const userAgent = window.navigator.userAgent;
+      const isAppleMobile =
+        /iPhone|iPad|iPod/.test(userAgent) ||
+        (window.navigator.platform === "MacIntel" &&
+          window.navigator.maxTouchPoints > 1);
+      const isSafariBrowser =
+        /Safari/.test(userAgent) &&
+        !/CriOS|FxiOS|EdgiOS|Chrome/.test(userAgent);
+
+      setIsIosSafari(isAppleMobile && isSafariBrowser);
+    }, 0);
+
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPromptEvent(event as BeforeInstallPromptEvent);
@@ -223,6 +237,7 @@ export function TranslatorApp() {
     mediaQuery.addEventListener("change", updateInstalledState);
 
     return () => {
+      window.clearTimeout(safariCheckTimeout);
       window.removeEventListener(
         "beforeinstallprompt",
         handleBeforeInstallPrompt,
@@ -496,6 +511,16 @@ export function TranslatorApp() {
               Get Thai script instantly, then tap the large read-aloud button.
             </p>
           </div>
+
+          {isIosSafari && !isInstalled ? (
+            <div className="rounded-3xl border border-gold-700/25 bg-gold-500/10 px-4 py-3 text-sm leading-6 text-stone-800">
+              <p className="font-bold text-gold-900">Install on iPhone</p>
+              <p className="mt-1">
+                In Safari, tap <span className="font-bold">Share</span>, then
+                choose <span className="font-bold">Add to Home Screen</span>.
+              </p>
+            </div>
+          ) : null}
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <label className="block space-y-2" htmlFor="translation-input">
