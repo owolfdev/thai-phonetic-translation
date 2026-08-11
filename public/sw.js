@@ -1,5 +1,5 @@
 const CACHE_NAME = "thai-language-studio-v1";
-const APP_SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
+const APP_SHELL = ["/", "/manifest.webmanifest", "/icon", "/pwa-icon-192"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

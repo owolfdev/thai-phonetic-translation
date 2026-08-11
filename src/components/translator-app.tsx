@@ -16,6 +16,14 @@ type ApiResponse = {
   error?: string;
 };
 
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+};
+
 function CopyIcon() {
   return (
     <svg
@@ -59,6 +67,25 @@ function SpeakerIcon({ active }: { active: boolean }) {
   );
 }
 
+function InstallIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3v10" />
+      <path d="m8 9 4 4 4-4" />
+      <path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" />
+    </svg>
+  );
+}
+
 function inputLabel(inputType: TranslationResult["detectedInput"]) {
   switch (inputType) {
     case "english":
@@ -81,6 +108,10 @@ export function TranslatorApp() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [thaiVoice, setThaiVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [installPromptEvent, setInstallPromptEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [installMessage, setInstallMessage] = useState("");
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const stopSpeaking = useCallback(() => {
@@ -134,6 +165,54 @@ export function TranslatorApp() {
     return () => window.clearTimeout(timeout);
   }, [copied]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    const updateInstalledState = () => {
+      const standaloneNavigator = window.navigator as Navigator & {
+        standalone?: boolean;
+      };
+
+      setIsInstalled(
+        mediaQuery.matches || standaloneNavigator.standalone === true,
+      );
+    };
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+      setInstallMessage("");
+      updateInstalledState();
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPromptEvent(null);
+      setInstallMessage("App installed");
+    };
+
+    updateInstalledState();
+
+    window.addEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt,
+    );
+    window.addEventListener("appinstalled", handleAppInstalled);
+    mediaQuery.addEventListener("change", updateInstalledState);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+      mediaQuery.removeEventListener("change", updateInstalledState);
+    };
+  }, []);
+
   async function handleCopy() {
     if (!result?.thai) {
       return;
@@ -174,6 +253,23 @@ export function TranslatorApp() {
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
     setIsSpeaking(true);
+  }
+
+  async function handleInstall() {
+    if (!installPromptEvent) {
+      return;
+    }
+
+    await installPromptEvent.prompt();
+    const choice = await installPromptEvent.userChoice;
+
+    if (choice.outcome === "accepted") {
+      setInstallMessage("Install accepted");
+    } else {
+      setInstallMessage("Install dismissed");
+    }
+
+    setInstallPromptEvent(null);
   }
 
   const handleSubmit = useCallback(
@@ -281,10 +377,30 @@ export function TranslatorApp() {
               >
                 {loading ? "Translating..." : "Translate"}
               </button>
+              {!isInstalled && installPromptEvent ? (
+                <button
+                  type="button"
+                  onClick={handleInstall}
+                  className="inline-flex items-center gap-2 rounded-full border border-gold-700/40 px-5 py-3 text-xs font-bold tracking-[0.18em] text-gold-800 uppercase transition hover:bg-gold-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-700"
+                >
+                  <InstallIcon />
+                  Install App
+                </button>
+              ) : null}
+              {isInstalled ? (
+                <span className="rounded-full border border-gold-700/30 bg-gold-500/10 px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-gold-800 uppercase">
+                  Installed
+                </span>
+              ) : null}
               <p className="text-xs leading-6 text-stone-600">
                 Keep your API key on the server with `OPENAI_API_KEY`.
               </p>
             </div>
+            {installMessage ? (
+              <p className="text-xs leading-6 text-stone-600">
+                {installMessage}
+              </p>
+            ) : null}
           </form>
 
           {error ? (
