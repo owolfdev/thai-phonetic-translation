@@ -392,6 +392,9 @@ export function TranslatorApp() {
                 <p className="thai-text text-4xl leading-tight text-teal-950 sm:text-5xl">
                   {result.thai}
                 </p>
+                <p className="mt-3 text-sm leading-7 text-stone-700 sm:text-base">
+                  {result.englishGloss}
+                </p>
               </div>
 
               <button
