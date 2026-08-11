@@ -1,0 +1,23 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Thai Language Studio",
+    short_name: "Thai Studio",
+    description:
+      "Translate English and phonetic Thai into Thai script, then listen with built-in Thai text-to-speech.",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#f4efe4",
+    theme_color: "#184a45",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "maskable",
+      },
+    ],
+  };
+}
