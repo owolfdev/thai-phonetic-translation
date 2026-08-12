@@ -392,6 +392,9 @@ export function TranslatorApp() {
                 <p className="thai-text text-4xl leading-tight text-teal-950 sm:text-5xl">
                   {result.thai}
                 </p>
+                <p className="mt-3 text-xs font-bold tracking-[0.16em] text-stone-500 uppercase">
+                  {result.rtgs}
+                </p>
                 <p className="mt-3 text-sm leading-7 text-stone-700 sm:text-base">
                   {result.englishGloss}
                 </p>
@@ -425,25 +428,6 @@ export function TranslatorApp() {
                   Study details
                 </summary>
                 <div className="mt-4 space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[1.25rem] border border-teal-900/10 bg-(--paper) p-4">
-                      <p className="text-[11px] font-bold tracking-[0.16em] text-stone-600 uppercase">
-                        RTGS
-                      </p>
-                      <p className="mt-2 text-sm leading-7 text-stone-800">
-                        {result.rtgs}
-                      </p>
-                    </div>
-                    <div className="rounded-[1.25rem] border border-teal-900/10 bg-(--paper) p-4">
-                      <p className="text-[11px] font-bold tracking-[0.16em] text-stone-600 uppercase">
-                        English gloss
-                      </p>
-                      <p className="mt-2 text-sm leading-7 text-stone-800">
-                        {result.englishGloss}
-                      </p>
-                    </div>
-                  </div>
-
                   <div>
                     <p className="text-[11px] font-bold tracking-[0.16em] text-stone-600 uppercase">
                       Per-syllable tones
